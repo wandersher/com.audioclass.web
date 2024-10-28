@@ -13,8 +13,7 @@ import * as logger from "firebase-functions/logger";
 // Start writing functions
 // https://firebase.google.com/docs/functions/typescript
 
-export const textToSpeach = onRequest((request, response) => {
-  //   const text = request.body;
+export const text_to_speach = onRequest((request, response) => {
   logger.info("Hello logs!", { structuredData: true });
   response.send("Hello from Firebase!");
 });
