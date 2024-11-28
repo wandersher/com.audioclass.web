@@ -27,4 +27,4 @@ package-lock.json
 build
 *.tsbuildinfo
 
-.firebase
+.firebase/**/*
