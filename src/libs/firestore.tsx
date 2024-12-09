@@ -32,6 +32,8 @@ type Topic = {
   position: number;
   name: string;
   text: string;
+  audio_name?: string;
+  audio_text?: string;
   audio_progress?: number;
   exercises?: string[];
 };

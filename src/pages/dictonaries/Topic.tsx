@@ -124,7 +124,7 @@ export function Topic() {
                 />
               );
             case "text":
-              if (item.text.length > 150) {
+              if ((item.text?.length ?? 0) > 150) {
                 return (
                   <Tooltip placement="bottom" title={item.text} arrow style={{ maxWidth: "600px" }}>
                     <Typography.Text style={{}}>{item.text.slice(0, 150)}</Typography.Text>

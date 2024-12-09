@@ -6,6 +6,7 @@ import { useFirestore } from "../../libs/firestore";
 import { v4 } from "uuid";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { Loading } from "../Loading";
+import Listen from "../../components/Listen";
 
 export function Course() {
   const { id } = useParams();
@@ -62,6 +63,7 @@ export function Course() {
       <List
         headers={[
           { key: "index", title: "#", width: 32 },
+          { key: "audio_name", title: <Icons.Audio size={20} style={{ margin: 2 }} />, width: 48 },
           { key: "name", title: "Назва теми", flex: 20 },
           { key: "audio_progress", title: "Стан озвучування", flex: 5 },
           { key: "text", title: "Текст", flex: 5 },
@@ -73,6 +75,24 @@ export function Course() {
           switch (key) {
             case "index":
               return position + 1;
+            case "audio_name":
+              return !item.audio_name ? (
+                <Icons.Loading size={24} style={{ animation: `spin 1s linear infinite` }} />
+              ) : (
+                <Listen
+                  url={item.audio_name}
+                  playComponent={({ play }) => (
+                    <Button type="text" onClick={play} style={{ width: 24, height: 24, padding: 0 }}>
+                      <Icons.Play size={24} />
+                    </Button>
+                  )}
+                  pauseComponent={({ pause }) => (
+                    <Button type="text" onClick={pause} style={{ width: 24, height: 24, padding: 0 }}>
+                      <Icons.Pause size={24} />
+                    </Button>
+                  )}
+                />
+              );
             case "name":
               return <Link to={`/topics/${item.id}`}>{item.name}</Link>;
             case "audio_progress":
@@ -83,7 +103,7 @@ export function Course() {
                   return <Tag color={"default"}>{`Завершено ${item.audio_progress ?? 0} %`}</Tag>;
               }
             case "text":
-              return <Typography.Text>{item.text.length} символів</Typography.Text>;
+              return <Typography.Text>{item.text?.length ?? 0} символів</Typography.Text>;
             case "exercises":
               return <Typography.Text>{item.exercises?.length ? item.exercises.length : "Немає завдань"} </Typography.Text>;
             case "actions":
