@@ -50,6 +50,18 @@ type Exercise = {
   new_answers?: number;
 };
 
+export type Answer = {
+  id: string;
+  user_id: string;
+  sender_id: string;
+  sender_name: string;
+  course_id: string;
+  topic_id: string;
+  exercise_id: string;
+  audio: string;
+  text?: string;
+};
+
 type FirestoreContextType = {
   courses: Course[] | null;
   saveCourse: (data: Course) => Promise<any>;
@@ -62,6 +74,9 @@ type FirestoreContextType = {
   exercises: Exercise[] | null;
   saveExercise: (data: Exercise) => Promise<any>;
   deleteExercise: (data: Exercise) => Promise<any>;
+
+  answers: Answer[] | null;
+  saveAnswer: (data: Answer) => Promise<any>;
 };
 
 export const FirestoreContext = createContext<FirestoreContextType>({} as any);
@@ -82,6 +97,7 @@ export function FirestoreProvider({ children }: any) {
   const [courses, setCourses] = useState<Course[] | null>(null);
   const [topics, setTopics] = useState<Topic[] | null>(null);
   const [exercises, setExercises] = useState<Exercise[] | null>(null);
+  const [answers, setAnswers] = useState<Answer[] | null>(null);
 
   const coursesCol = useCallback(() => collection(firestore, `courses`), [firestore]);
   const coursesDoc = useCallback((id: string) => doc(firestore, `courses`, id), [firestore]);
@@ -91,6 +107,9 @@ export function FirestoreProvider({ children }: any) {
 
   const exercisesCol = useCallback(() => collection(firestore, `exercise`), [firestore]);
   const exercisesDoc = useCallback((id: string) => doc(firestore, `exercise`, id), [firestore]);
+
+  const answersCol = useCallback(() => collection(firestore, `answers`), [firestore]);
+  const answersDoc = useCallback((id: string) => doc(firestore, `answers`, id), [firestore]);
 
   useEffect(() => {
     const unsubscribeFromCoures = !profile
@@ -105,10 +124,15 @@ export function FirestoreProvider({ children }: any) {
       ? () => {}
       : onSnapshot(query(exercisesCol(), where("user_id", "==", profile?.uid)), ({ docs }) => setExercises(docs.map((doc) => doc.data()) as any));
 
+    const unsubscribeFromAnswers = !profile
+      ? () => {}
+      : onSnapshot(query(answersCol(), where("user_id", "==", profile?.uid)), ({ docs }) => setAnswers(docs.map((doc) => doc.data()) as any));
+
     return () => {
       unsubscribeFromCoures();
       unsubscribeFromTopics();
       unsubscribeFromExercises();
+      unsubscribeFromAnswers();
     };
   }, [profile]);
 
@@ -120,6 +144,8 @@ export function FirestoreProvider({ children }: any) {
 
   const saveExercise = useCallback((data: Exercise) => setDoc(exercisesDoc(data.id), prepare(data, profile), { merge: true }), [firestore, profile]);
   const deleteExercise = useCallback((data: Exercise) => deleteDoc(exercisesDoc(data.id)), [firestore]);
+
+  const saveAnswer = useCallback((data: Answer) => setDoc(answersDoc(data.id), data, { merge: true }), [firestore]);
 
   const value = {
     courses,
@@ -133,6 +159,9 @@ export function FirestoreProvider({ children }: any) {
     exercises,
     saveExercise,
     deleteExercise,
+
+    answers,
+    saveAnswer,
   };
 
   return <FirestoreContext.Provider value={value} children={children} />;
