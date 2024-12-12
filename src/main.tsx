@@ -1,4 +1,4 @@
-import ReactDOM from "react-dom/client";
+import { createRoot } from "react-dom/client";
 
 import "./main.css";
 import "./libs/firebase";
@@ -19,7 +19,7 @@ const theme = {
   },
 };
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+createRoot(document.getElementById("root") as HTMLElement).render(
   <ConfigProvider theme={theme}>
     <App>
       <FirebaseProvider>
