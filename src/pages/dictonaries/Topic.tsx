@@ -80,12 +80,14 @@ export function Topic() {
             type="primary"
             onClick={() => {
               const position = list ? (list.at(list.length - 1)?.position ?? 0) + 1 : 0;
-              setModal({
+              const item = {
                 course_id: topic.course_id,
                 topic_id: topic.id,
                 position,
                 text: "",
-              });
+              };
+              setModal(item);
+              form.setFieldsValue(item);
             }}
             size="large"
           >
@@ -173,6 +175,7 @@ export function Topic() {
         title="Додати завдання"
         onCancel={() => {
           setModal(null);
+          form.resetFields();
           console.log("set modal null");
         }}
         footer={null}
