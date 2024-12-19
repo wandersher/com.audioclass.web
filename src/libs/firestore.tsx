@@ -23,6 +23,8 @@ type Course = {
   name: string;
   group: string;
   audio: string;
+  listeners?: number;
+  topics?: number;
 };
 
 type Topic = {
@@ -139,8 +141,24 @@ export function FirestoreProvider({ children }: any) {
   const saveCourse = useCallback((data: Course) => setDoc(coursesDoc(data.id), prepare(data, profile), { merge: true }), [firestore, profile]);
   const deleteCourse = useCallback((data: Course) => deleteDoc(coursesDoc(data.id)), [firestore]);
 
-  const saveTopic = useCallback((data: Topic) => setDoc(topicsDoc(data.id), prepare(data, profile), { merge: true }), [firestore, profile]);
-  const deleteTopic = useCallback((data: Topic) => deleteDoc(topicsDoc(data.id)), [firestore]);
+  const saveTopic = useCallback(
+    (data: Topic) => {
+      setDoc(topicsDoc(data.id), prepare(data, profile), { merge: true });
+      const course = courses?.find((it) => it.id === data.course_id);
+      setDoc(coursesDoc(data.course_id), { topics: (course?.topics ?? 0) + 1 }, { merge: true });
+      return Promise.resolve();
+    },
+    [firestore, profile]
+  );
+  const deleteTopic = useCallback(
+    (data: Topic) => {
+      deleteDoc(topicsDoc(data.id));
+      const course = courses?.find((it) => it.id === data.course_id);
+      setDoc(coursesDoc(data.course_id), { topics: (course?.topics ?? 0) - 1 }, { merge: true });
+      return Promise.resolve();
+    },
+    [firestore]
+  );
 
   const saveExercise = useCallback((data: Exercise) => setDoc(exercisesDoc(data.id), prepare(data, profile), { merge: true }), [firestore, profile]);
   const deleteExercise = useCallback((data: Exercise) => deleteDoc(exercisesDoc(data.id)), [firestore]);

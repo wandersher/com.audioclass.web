@@ -42,7 +42,7 @@ export function ListItem<T extends object>({ headers, item, row, render }: ListI
             align="center"
           >
             {item && render ? (
-              render(item, key, row) || (
+              render(item, key, row) ?? (
                 <Tooltip placement="bottom" title={typeof item[key] == "string" && is_elipsis ? item[key] : ""} arrow>
                   <Typography.Text
                     ref={text}

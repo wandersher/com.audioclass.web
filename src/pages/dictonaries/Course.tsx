@@ -1,19 +1,24 @@
 import { useEffect, useMemo, useState } from "react";
 import Icons from "../../components/Icons";
 import List from "../../components/List";
-import { Button, Card, Dropdown, Flex, Input, MenuProps, message, Modal, Space, Tag, Tooltip, Typography, Form } from "antd";
+import { Button, Card, Dropdown, Flex, Input, MenuProps, message, Modal, Space, Tag, Tooltip, Typography, Form, Select } from "antd";
 import { useFirestore } from "../../libs/firestore";
 import { v4 } from "uuid";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Loading } from "../Loading";
 import Listen from "../../components/Listen";
 
 export function Course() {
-  const { id } = useParams();
-  const { courses, topics, saveTopic, deleteTopic } = useFirestore();
+  const { id = "" } = useParams();
+  const { courses, topics, exercises, saveTopic, deleteTopic } = useFirestore();
+  const navigate = useNavigate();
 
-  const course = useMemo(() => courses?.find((it) => it.id === id), [id, courses]);
-  const list = useMemo(() => topics?.filter((it) => it.course_id === id), [id, topics]);
+  const course = useMemo(() => (id ? courses?.find((it) => it.id === id) : null), [id, courses]);
+  const list = useMemo(
+    () => (id ? topics?.filter((it) => it.course_id === id).sort((a, b) => (a.position > b.position ? 1 : -1)) : topics),
+    [id, topics]
+  );
+  const course_exercises = useMemo(() => (id ? exercises?.filter((it) => it.course_id === id) : exercises), [id, exercises]);
 
   const [modal, setModal] = useState<any>(null);
   const [form] = Form.useForm();
@@ -39,33 +44,49 @@ export function Course() {
     //   },
     // });
   };
-
-  if (!course || !list) return <Loading />;
+  console.log("course", course);
+  if ((id && !course) || !list) return <Loading />;
 
   return (
     <Flex vertical style={{ padding: 32, paddingTop: 16 }}>
-      <Flex justify="space-between" align="center">
-        <Typography.Title level={2}>
-          {course.name} {course.group ? `(${course.group})` : null}
-        </Typography.Title>
-        <Flex style={{ marginBottom: 15 }}>
-          <Button
-            type="primary"
-            onClick={() => {
-              const position = topics ? (topics.at(topics.length - 1)?.position ?? 0) + 1 : 0;
-              setModal({ course_id: course.id, position });
-            }}
-          >
-            Додати
-          </Button>
+      <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
+        <Select
+          placeholder="Оберіть курс"
+          style={{ width: 300 }}
+          value={id}
+          onChange={(id) => (id ? navigate(`/courses/${id}`) : navigate("/topics"))}
+          size="large"
+        >
+          <Select.Option key={"undefined"} value={""}>
+            Всі теми
+          </Select.Option>
+          {courses?.map((course) => (
+            <Select.Option key={course.id} value={course.id}>
+              {course.name} {course.group ? `(${course.group})` : null}
+            </Select.Option>
+          ))}
+        </Select>
+
+        <Flex>
+          {id ? (
+            <Button
+              type="primary"
+              onClick={() => {
+                const position = list ? (list.at(list.length - 1)?.position ?? 0) + 1 : 0;
+                setModal({ course_id: id, position });
+                form.setFieldsValue({ course_id: id, position });
+              }}
+            >
+              Додати
+            </Button>
+          ) : null}
         </Flex>
       </Flex>
       <List
         headers={[
-          { key: "index", title: "#", width: 32 },
+          { key: "position", title: "#", width: 32 },
           { key: "audio_name", title: <Icons.Audio size={20} style={{ margin: 2 }} />, width: 48 },
           { key: "name", title: "Назва теми", flex: 20 },
-          { key: "audio_progress", title: "Стан озвучування", flex: 5 },
           { key: "text", title: "Текст", flex: 5 },
           { key: "exercises", title: "Завдання", flex: 5 },
           { key: "actions", title: "Дії", width: 32 },
@@ -73,8 +94,8 @@ export function Course() {
         list={list ?? []}
         render={(item, key, position) => {
           switch (key) {
-            case "index":
-              return position + 1;
+            case "position":
+              return item.position;
             case "audio_name":
               return !item.audio_name ? (
                 <Icons.Loading size={24} style={{ animation: `spin 1s linear infinite` }} />
@@ -95,17 +116,11 @@ export function Course() {
               );
             case "name":
               return <Link to={`/topics/${item.id}`}>{item.name}</Link>;
-            case "audio_progress":
-              switch (item.audio_progress) {
-                case 100:
-                  return <Tag color={"success"}>Весь текст озвучено</Tag>;
-                default:
-                  return <Tag color={"default"}>{`Завершено ${item.audio_progress ?? 0} %`}</Tag>;
-              }
             case "text":
               return <Typography.Text>{item.text?.length ?? 0} символів</Typography.Text>;
             case "exercises":
-              return <Typography.Text>{item.exercises?.length ? item.exercises.length : "Немає завдань"} </Typography.Text>;
+              const count = course_exercises?.filter((it) => it.topic_id === item.id)?.length ?? 0;
+              return <Typography.Text>{count} </Typography.Text>;
             case "actions":
               return (
                 <Dropdown
@@ -115,7 +130,10 @@ export function Course() {
                         label: <Typography.Text>Редагувати</Typography.Text>,
                         key: "edit",
                         icon: <Icons.Edit size={18} />,
-                        onClick: () => setModal(item),
+                        onClick: () => {
+                          setModal(item);
+                          form.setFieldsValue(item);
+                        },
                       },
                       {
                         label: <Typography.Text>Видалити</Typography.Text>,

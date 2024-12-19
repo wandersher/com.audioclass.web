@@ -58,19 +58,19 @@ export function Courses() {
       </Flex>
       <List
         headers={[
-          { key: "index", title: "#", width: 32 },
+          { key: "position", title: "#", width: 32 },
           { key: "id", title: <Icons.Link size={20} style={{ margin: 2 }} />, width: 32 },
           { key: "audio", title: <Icons.Audio size={20} style={{ margin: 2 }} />, width: 48 },
           { key: "name", title: "Назва", flex: 20 },
-          { key: "group", title: "Група", flex: 20 },
-          { key: "members", title: "Кількість учасників", flex: 10 },
-          { key: "topics", title: "Кількість тем", flex: 10 },
+          { key: "group", title: "Група", flex: 15 },
+          { key: "listeners", title: "Кількість учасників", flex: 15, center: true },
+          { key: "topics", title: "Кількість тем", flex: 15, center: true },
           { key: "actions", title: "Дії", width: 32 },
         ]}
         list={courses ?? []}
         render={(item, key, position) => {
           switch (key) {
-            case "index":
+            case "position":
               return position + 1;
             case "id":
               return (
@@ -98,6 +98,8 @@ export function Courses() {
               );
             case "name":
               return <Link to={`${location.pathname}/${item.id}`}>{item.name}</Link>;
+            case "topics":
+              return item.topics ?? 0;
             case "actions":
               return (
                 <Dropdown

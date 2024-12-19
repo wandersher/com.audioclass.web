@@ -73,13 +73,15 @@ const Sidebar: React.FC = () => {
       case "/courses":
         return navigate("/courses");
       case "/topics":
-        if (selected.includes("/exercises")) {
-          const topic = topics?.find((it) => it.id === params.id);
-          if (topic) return navigate(`/courses/${topic.course_id}`);
-        }
-        return message.warning("Оберіть курс щоб переглянути його теми");
+        return navigate("/topics");
+      // if (selected.includes("/exercises")) {
+      //   const topic = topics?.find((it) => it.id === params.id);
+      //   if (topic) return navigate(`/courses/${topic.course_id}`);
+      // }
+      // return message.warning("Оберіть курс щоб переглянути його теми");
       case "/exercises":
-        return message.warning("Оберіть тему курсу щоб переглянути її завдання");
+        return navigate("/exercises");
+      // return message.warning("Оберіть тему курсу щоб переглянути її завдання");
       default:
         navigate(item.key);
     }

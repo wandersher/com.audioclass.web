@@ -8,5 +8,6 @@ export { Courses } from "./dictonaries/Courses";
 export { Course } from "./dictonaries/Course";
 export { Topic } from "./dictonaries/Topic";
 export { Answers } from "./dictonaries/Answers";
+export { Exercises } from "./dictonaries/Exercises";
 
 export { Settings } from "./settings/Settings";

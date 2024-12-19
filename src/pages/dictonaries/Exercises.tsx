@@ -1,33 +1,40 @@
 import { useEffect, useMemo, useState } from "react";
 import Icons from "../../components/Icons";
 import List from "../../components/List";
-import { Button, Card, Dropdown, Flex, Input, MenuProps, message, Modal, Space, Tag, Tooltip, Typography, Form } from "antd";
+import { Button, Card, Dropdown, Flex, Input, MenuProps, message, Modal, Space, Tag, Tooltip, Typography, Form, Select } from "antd";
 import { useFirestore } from "../../libs/firestore";
 import { v4 } from "uuid";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { Loading } from "../Loading";
 import Listen from "../../components/Listen";
 
-export function Topic() {
-  const { id } = useParams();
-  const { topics, saveTopic, exercises, saveExercise, deleteExercise } = useFirestore();
+export function Exercises() {
+  const { courses, topics, exercises, saveExercise, deleteExercise } = useFirestore();
 
-  const topic = useMemo(() => topics?.find((it) => it.id === id), [id, topics]);
-  const list = useMemo(() => exercises?.filter((it) => it.topic_id == id).sort((a, b) => (a.position > b.position ? 1 : -1)), [id, exercises]);
+  // const topic = useMemo(() => topics?.find((it) => it.id === id), [id, topics]);
+
+  const [course, setCourse] = useState<any>(null);
+  const [topic, setTopic] = useState<any>(null);
 
   const [modal, setModal] = useState<any>(null);
   const [form] = Form.useForm();
 
-  const onSubmit = async ({ id, ...data }: any) => {
-    await saveTopic({ id, ...data });
-    message.success("Тему успішно змінено");
-  };
+  const course_topics = useMemo(() => topics?.filter((it) => !course || it.course_id === course.id), [topics, course]);
+
+  const list = useMemo(
+    () =>
+      exercises
+        ?.filter((it) => (!course || it.course_id === course?.id) && (!topic || it.topic_id == topic?.id))
+        .sort((a, b) => (a.position > b.position ? 1 : -1)),
+    [exercises, course, topic]
+  );
 
   const onSubmitExercise = async ({ id, ...data }: any) => {
     await saveExercise({ id: id ?? v4(), ...data, audio: "" });
     message.success(id ? "Завдання успішно змінено" : "Завдання успішно створено");
     setModal(null);
   };
+
   const onDelete = (item: any) => {
     Modal.confirm({
       title: "Ви впевнені що бажаєте видалити завдання?",
@@ -45,52 +52,68 @@ export function Topic() {
     });
   };
 
-  if (!topic || !list) return <Loading />;
+  if (!list) return <Loading />;
 
   return (
     <Flex vertical style={{ padding: 32, paddingTop: 16 }}>
-      <Typography.Title level={3}>Тема</Typography.Title>
-      <Form initialValues={topic} onFinish={onSubmit} style={{ marginBottom: 16 }}>
-        <Form.Item name="id" noStyle>
-          <Input hidden />
-        </Form.Item>
-        <Form.Item name="course_id" noStyle>
-          <Input hidden />
-        </Form.Item>
-        <Flex justify="space-between" align="flex-start">
-          <Flex flex={5} style={{ marginRight: 24 }}>
-            <Form.Item name="name" rules={[{ required: true, message: "Назва теми обовʼязкова" }]} style={{ width: "100%" }}>
-              <Input placeholder="Назва теми" size="large" />
-            </Form.Item>
-          </Flex>
-          <Flex vertical justify="flex-start">
-            <Button block type="primary" htmlType="submit" size="large">
-              Зберегти
-            </Button>
-          </Flex>
-        </Flex>
-        <Form.Item name="text" rules={[{ required: false }]}>
-          <Input.TextArea placeholder="Текст теми" size="large" style={{ minHeight: 300 }} />
-        </Form.Item>
-      </Form>
-      <Flex justify="space-between" align="center">
-        <Typography.Title level={3}>Завдання</Typography.Title>
-        <Flex style={{ marginBottom: 15 }}>
-          <Button
-            type="primary"
-            onClick={() => {
-              const position = list ? (list.at(list.length - 1)?.position ?? 0) + 1 : 0;
-              setModal({
-                course_id: topic.course_id,
-                topic_id: topic.id,
-                position,
-                text: "",
-              });
+      <Flex justify="space-between" align="center" style={{ marginBottom: 16 }}>
+        <Flex>
+          <Select
+            placeholder="Оберіть курс"
+            style={{ width: 300, marginRight: 16 }}
+            value={course?.id ?? ""}
+            onChange={(id) => {
+              setCourse(courses?.find((it) => it.id === id));
+              setTopic(null);
             }}
             size="large"
           >
-            Додати завдання
-          </Button>
+            <Select.Option key={"n-course"} value={""}>
+              Всі курси
+            </Select.Option>
+            {courses?.map((course) => (
+              <Select.Option key={course.id} value={course.id}>
+                {course.name} {course.group ? `(${course.group})` : null}
+              </Select.Option>
+            ))}
+          </Select>
+          <Select
+            placeholder="Оберіть тему"
+            style={{ width: 300 }}
+            value={topic?.id ?? ""}
+            onChange={(id) => setTopic(topics?.find((it) => it.id === id))}
+            size="large"
+          >
+            <Select.Option key={"n-topic"} value={""}>
+              Всі теми
+            </Select.Option>
+            {course_topics?.map((topic) => (
+              <Select.Option key={topic.id} value={topic.id}>
+                {topic.name}
+              </Select.Option>
+            ))}
+          </Select>
+        </Flex>
+        <Flex>
+          {course && topic ? (
+            <Button
+              type="primary"
+              onClick={() => {
+                const position = list ? (list.at(list.length - 1)?.position ?? 0) + 1 : 0;
+                const item = {
+                  course_id: course.id,
+                  topic_id: topic.id,
+                  position,
+                  text: "",
+                };
+                setModal(item);
+                form.setFieldsValue(item);
+              }}
+              size="large"
+            >
+              Додати завдання
+            </Button>
+          ) : null}
         </Flex>
       </Flex>
       <List
