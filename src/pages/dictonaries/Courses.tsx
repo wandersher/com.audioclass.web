@@ -22,6 +22,7 @@ export function Courses() {
     await saveCourse({ id: id ?? v4(), ...data });
     message.success(id ? "Курс успішно змінено" : "Курс успішно створено");
     setModal(null);
+    form.resetFields();
   };
 
   const onDelete = (item: any) => {
@@ -49,7 +50,7 @@ export function Courses() {
             type="primary"
             onClick={() => {
               form.resetFields();
-              setModal({});
+              setModal({ id: undefined });
             }}
           >
             Додати

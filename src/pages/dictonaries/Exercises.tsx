@@ -33,6 +33,7 @@ export function Exercises() {
     await saveExercise({ id: id ?? v4(), ...data, audio: "" });
     message.success(id ? "Завдання успішно змінено" : "Завдання успішно створено");
     setModal(null);
+    form.resetFields();
   };
 
   const onDelete = (item: any) => {
@@ -101,6 +102,7 @@ export function Exercises() {
               onClick={() => {
                 const position = list ? (list.at(list.length - 1)?.position ?? 0) + 1 : 0;
                 const item = {
+                  id: undefined,
                   course_id: course.id,
                   topic_id: topic.id,
                   position,

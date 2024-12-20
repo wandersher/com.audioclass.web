@@ -27,6 +27,7 @@ export function Course() {
     await saveTopic({ id: id ?? v4(), ...data });
     message.success(id ? "Тему успішно змінено" : "Тему успішно створено");
     setModal(null);
+    form.resetFields();
   };
 
   const onDelete = (item: any) => {
@@ -73,8 +74,8 @@ export function Course() {
               type="primary"
               onClick={() => {
                 const position = list ? (list.at(list.length - 1)?.position ?? 0) + 1 : 0;
-                setModal({ course_id: id, position });
-                form.setFieldsValue({ course_id: id, position });
+                setModal({ id: undefined, course_id: id, position });
+                form.setFieldsValue({ id: undefined, course_id: id, position });
               }}
             >
               Додати

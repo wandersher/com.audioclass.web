@@ -24,9 +24,11 @@ export function Topic() {
   };
 
   const onSubmitExercise = async ({ id, ...data }: any) => {
+    // console.log({ id, ...data });
     await saveExercise({ id: id ?? v4(), ...data, audio: "" });
     message.success(id ? "Завдання успішно змінено" : "Завдання успішно створено");
     setModal(null);
+    form.resetFields();
   };
   const onDelete = (item: any) => {
     Modal.confirm({
@@ -81,6 +83,7 @@ export function Topic() {
             onClick={() => {
               const position = list ? (list.at(list.length - 1)?.position ?? 0) + 1 : 0;
               const item = {
+                id: undefined,
                 course_id: topic.course_id,
                 topic_id: topic.id,
                 position,
@@ -88,6 +91,7 @@ export function Topic() {
               };
               setModal(item);
               form.setFieldsValue(item);
+              console.log("create", item);
             }}
             size="large"
           >
